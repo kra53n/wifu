@@ -75,7 +75,7 @@ def is_func_call(line: str) -> bool:
     return len(s) and (len(s) - spaces - tabs > 0)
 
 
-def is_func(line: str) -> bool:
+def is_func_decl(line: str) -> bool:
     return line.strip() == 'func'
 
 
@@ -94,7 +94,7 @@ def skip_empty_lines(code: list[str], line_num: int) -> int:
     return line_num
 
 
-def get_func_name(code: list[str], line_num: int, base_indent: int) -> (str, int):
+def get_func_decl_name(code: list[str], line_num: int, base_indent: int) -> (str, int):
     line_num += 1
     line_num = skip_empty_lines(code, line_num)
     func_name = code[line_num].strip()
@@ -103,7 +103,7 @@ def get_func_name(code: list[str], line_num: int, base_indent: int) -> (str, int
     return func_name, line_num
 
 
-def get_func_args(code: list[str], line_num: int, base_indent: int) -> (list[FuncArg], int):
+def get_func_decl_args(code: list[str], line_num: int, base_indent: int) -> (list[FuncArg], int):
     line_num += 1
     line_num = skip_empty_lines(code, line_num)
     if code[line_num].strip() != 'args':
@@ -113,15 +113,14 @@ def get_func_args(code: list[str], line_num: int, base_indent: int) -> (list[Fun
     return [], line_num
 
 
-def get_func_body(code: list[str], line_num: int, base_indent: int) -> (FuncBody, int):
-    # UNIMPLEMENTED(kra53n)
-    line_num += 1
+def get_func_decl_body(code: list[str], line_num: int, base_indent: int) -> (FuncBody, int):
     line_num = skip_empty_lines(code, line_num)
-    body: list[Statement] = []
+    body: list[FuncCall] = []
     while (line_num < len(code) and
            (indent := define_line_indent(code[line_num])) and
            indent > base_indent):
-        body.append(code[line_num])
+        func_call, line_num = parse_func_call(code, line_num)
+        body.append(func_call)
         line_num += 1
     return body, line_num
 
@@ -139,7 +138,8 @@ def parse_func_call(code: list[str], line_num: int) -> (FuncCall, int):
             if line_indent > base_indent:
                 indent = line_indent
             else:
-                raise IndentationProblem()
+                line_num -= 1
+                break
 
         if line_indent == indent:
             func_call.add(code[line_num].strip())
@@ -153,12 +153,12 @@ def parse_func_call(code: list[str], line_num: int) -> (FuncCall, int):
     return func_call, line_num
 
 
-def parse_func(code: list[str], line_num: int) -> (Func, int):
+def parse_func_decl(code: list[str], line_num: int) -> (Func, int):
     start = line_num
     indent = define_line_indent(code[line_num])
-    func_name, line_num = get_func_name(code, line_num, indent)
-    args, line_num = get_func_args(code, line_num, indent)
-    body, line_num = get_func_body(code, line_num, indent)
+    func_name, line_num = get_func_decl_name(code, line_num, indent)
+    args, line_num = get_func_decl_args(code, line_num, indent)
+    body, line_num = get_func_decl_body(code, line_num, indent)
     return Func(func_name, start, args, body), line_num
 
 
@@ -201,8 +201,8 @@ class AST:
             elif is_func_call(line):
                 func_call, line_num = parse_func_call(code, line_num)
                 self._func_calls.append(func_call)
-            elif is_func(line):
-                func, line_num = parse_func(code, line_num)
+            elif is_func_decl(line):
+                func, line_num = parse_func_decl(code, line_num)
                 self._funcs.append(func)
             line_num += 1
 
