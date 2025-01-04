@@ -1,0 +1,4 @@
+print
+    'Hello'
+    'Wifu'
+    'Language'

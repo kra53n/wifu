@@ -1,5 +1,6 @@
 from typing import Any
 
+from utils import notify
 
 class FuncArg:
     pass
@@ -29,6 +30,20 @@ class FuncCall:
 
     def __repr__(self):
         return self.__str__()
+
+    def repr_as_tree(self, indent: int = 0):
+        res = ''
+        spaces = ' ' * 4
+        res += spaces * (indent + 0) + self._name + '\n'
+        for arg in self._args:
+            if isinstance(arg, FuncCall):
+                res += arg.repr_as_tree(indent+1)
+            else:
+                res += spaces * (indent+1) + arg
+            res += '\n'
+        if len(res):
+            return res[:-1]
+        return res
 
 
 class Func:
@@ -73,13 +88,13 @@ def define_line_indent(line: str) -> int:
     return i
 
 
-def skip_empty_lines(code: str, line_num: int) -> int:
+def skip_empty_lines(code: list[str], line_num: int) -> int:
     while not code[line_num].strip():
         line_num += 1
     return line_num
 
 
-def get_func_name(code: str, line_num: int, base_indent: int) -> (str, int):
+def get_func_name(code: list[str], line_num: int, base_indent: int) -> (str, int):
     line_num += 1
     line_num = skip_empty_lines(code, line_num)
     func_name = code[line_num].strip()
@@ -88,7 +103,7 @@ def get_func_name(code: str, line_num: int, base_indent: int) -> (str, int):
     return func_name, line_num
 
 
-def get_func_args(code: str, line_num: int, base_indent: int) -> (list[FuncArg], int):
+def get_func_args(code: list[str], line_num: int, base_indent: int) -> (list[FuncArg], int):
     line_num += 1
     line_num = skip_empty_lines(code, line_num)
     if code[line_num].strip() != 'args':
@@ -98,7 +113,7 @@ def get_func_args(code: str, line_num: int, base_indent: int) -> (list[FuncArg],
     return [], line_num
 
 
-def get_func_body(code: str, line_num: int, base_indent: int) -> (FuncBody, int):
+def get_func_body(code: list[str], line_num: int, base_indent: int) -> (FuncBody, int):
     # UNIMPLEMENTED(kra53n)
     line_num += 1
     line_num = skip_empty_lines(code, line_num)
@@ -133,6 +148,7 @@ def parse_func_call(code: list[str], line_num: int) -> (FuncCall, int):
             inner_func_call, line_num = parse_func_call(code, line_num-1)
             func_call.add(inner_func_call)
         else:
+            line_num -= 1
             break
     return func_call, line_num
 
@@ -191,5 +207,18 @@ class AST:
             line_num += 1
 
     def print(self):
-        print(self._func_calls)
-        print(self._funcs)
+        names = 'funcs', 'func calls'
+        funcs = self.print_funcs, self.print_func_calls
+        for name, func in zip(names, funcs):
+            print()
+            notify('*', 30, name.capitalize())
+            func()
+
+    def print_funcs(self):
+        for func in self._funcs:
+            print(func)
+
+    def print_func_calls(self):
+        for fcall in self._func_calls:
+            print(fcall.repr_as_tree())
+            print()
