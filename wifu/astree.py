@@ -1,6 +1,7 @@
-from typing import Any
+from typing import Any, Union
 
 from utils import notify
+
 
 class FuncArg:
     pass
@@ -10,10 +11,35 @@ class FuncBody:
     pass
 
 
+class FuncDeclArg:
+    def __init__(self, name: str, default_val: str):
+        self._name = name
+        self._default_val = default_val
+
+    def __str__(self):
+        return f'FuncDeclArg[name={self._name}, default_val={self._default_val or None}]'
+
+    def __repr__(self):
+        return self.__str__()
+
+
+def get_func_decl_arg_by_line(line: str):
+    name = ''
+    default_val = ''
+    if ':' in line:
+        delemiter_idx = line.index(':')
+        name = line[:delemiter_idx].strip()
+        default_val = default_val=line[delemiter_idx+1:].strip()
+    else:
+        name = line.strip()
+    return FuncDeclArg(name, default_val)
+
+
 class FuncCall:
     def __init__(self, name: str):
         self._name = name
         self._args = []
+        self._kwargs = []
 
     def add(self, arg):
         self._args.append(arg)
@@ -46,8 +72,8 @@ class FuncCall:
         return res
 
 
-class Func:
-    def __init__(self, name: str, start: int, args: list[FuncArg], body: FuncBody):
+class FuncDecl:
+    def __init__(self, name: str, start: int, args: list[FuncDeclArg], body: list[FuncCall]):
         self._name = name
         self._start = start
         self._args = args
@@ -94,7 +120,7 @@ def skip_empty_lines(code: list[str], line_num: int) -> int:
     return line_num
 
 
-def get_func_decl_name(code: list[str], line_num: int, base_indent: int) -> (str, int):
+def get_func_decl_name(code: list[str], line_num: int, base_indent: int) -> Union[str, int]:
     line_num += 1
     line_num = skip_empty_lines(code, line_num)
     func_name = code[line_num].strip()
@@ -103,17 +129,22 @@ def get_func_decl_name(code: list[str], line_num: int, base_indent: int) -> (str
     return func_name, line_num
 
 
-def get_func_decl_args(code: list[str], line_num: int, base_indent: int) -> (list[FuncArg], int):
+def get_func_decl_args(code: list[str], line_num: int, base_indent: int) -> Union[list[FuncArg], int]:
     line_num += 1
     line_num = skip_empty_lines(code, line_num)
-    if code[line_num].strip() != 'args':
-        line_num -= 1
-        return [],line_num
-    # UNIMPLEMENTED(kra53n)
-    return [], line_num
+    args: FuncDeclArg = []
+    indent = define_line_indent(code[line_num])
+    while indent > base_indent:
+        args.append(get_func_decl_arg_by_line(code[line_num]))
+        line_num += 1
+        next_indent = define_line_indent(code[line_num])
+        if next_indent > indent:
+            raise IndentationProblem()
+        indent = next_indent
+    return args, line_num
 
 
-def get_func_decl_body(code: list[str], line_num: int, base_indent: int) -> (FuncBody, int):
+def get_func_decl_body(code: list[str], line_num: int, base_indent: int) -> Union[FuncBody, int]:
     line_num = skip_empty_lines(code, line_num)
     body: list[FuncCall] = []
     while (line_num < len(code) and
@@ -125,7 +156,7 @@ def get_func_decl_body(code: list[str], line_num: int, base_indent: int) -> (Fun
     return body, line_num
 
 
-def parse_func_call(code: list[str], line_num: int) -> (FuncCall, int):
+def parse_func_call(code: list[str], line_num: int) -> Union[FuncCall, int]:
     func_name = code[line_num].strip()
     func_call = FuncCall(func_name)
 
@@ -153,13 +184,13 @@ def parse_func_call(code: list[str], line_num: int) -> (FuncCall, int):
     return func_call, line_num
 
 
-def parse_func_decl(code: list[str], line_num: int) -> (Func, int):
+def parse_func_decl(code: list[str], line_num: int) -> Union[FuncDecl, int]:
     start = line_num
     indent = define_line_indent(code[line_num])
     func_name, line_num = get_func_decl_name(code, line_num, indent)
-    args, line_num = get_func_decl_args(code, line_num, indent)
+    args, line_num = get_func_decl_args(code, line_num, define_line_indent(code[line_num]))
     body, line_num = get_func_decl_body(code, line_num, indent)
-    return Func(func_name, start, args, body), line_num
+    return FuncDecl(func_name, start, args, body), line_num
 
 
 def is_single_comment(line: str) -> bool:
@@ -174,7 +205,7 @@ def is_multiline_comment(line: str) -> bool:
               line[:3].count('"') == 3)))
 
 
-def ignore_multiline_comment(code: list[str], line_num: int) -> (None, int):
+def ignore_multiline_comment(code: list[str], line_num: int) -> Union[None, int]:
     comment_signature = code[line_num].strip()[:3]
     while line_num + 1 < len(code):
         line_num += 1
@@ -187,7 +218,7 @@ def ignore_multiline_comment(code: list[str], line_num: int) -> (None, int):
 class AST:
     def __init__(self, code: list[str]):
         self._func_calls: list[FuncCall] = []
-        self._funcs: list[Func] = []
+        self._func_decls: list[FuncDecl] = []
         self.build(code)
 
     def build(self, code: list[str]):
@@ -202,8 +233,8 @@ class AST:
                 func_call, line_num = parse_func_call(code, line_num)
                 self._func_calls.append(func_call)
             elif is_func_decl(line):
-                func, line_num = parse_func_decl(code, line_num)
-                self._funcs.append(func)
+                func_decl, line_num = parse_func_decl(code, line_num)
+                self._func_decls.append(func_decl)
             line_num += 1
 
     def print(self):
@@ -215,8 +246,8 @@ class AST:
             func()
 
     def print_funcs(self):
-        for func in self._funcs:
-            print(func)
+        for func_decl in self._func_decls:
+            print(func_decl)
 
     def print_func_calls(self):
         for fcall in self._func_calls:
