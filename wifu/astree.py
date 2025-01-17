@@ -4,6 +4,9 @@ from utils import notify
 from repr import Representable
 
 
+SPACES = ' ' * 4
+
+
 class SyntaxError(Exception):
     pass
 
@@ -12,20 +15,20 @@ class IndentationProblem(Exception):
     pass
 
 
-class FuncDeclArg:
+class DoubleColumnDecl:
     def __init__(self, name: str, kind: str, default_val: str):
-        self._name = name
-        self._kind = kind
-        self._default_val = default_val
-
-    def __str__(self):
-        return f'FuncDeclArg[name={self._name}, kind={self._kind or None}, default_val={self._default_val or None}]'
-
-    def __repr__(self):
-        return self.__str__()
+        pass
 
 
-def get_func_decl_arg_by_line(line: str):
+def get_double_column_decl_by_line(obj: DoubleColumnDecl, line: str, err_msg: str):
+    '''
+    return obj with initialized arguments:
+        - name: str
+        - kind: str
+        - default_val: str
+
+    the obj returns by parsing string like `obj : type : val` or some variation
+    '''
     name = ''
     kind = ''
     default_val = ''
@@ -39,8 +42,82 @@ def get_func_decl_arg_by_line(line: str):
         kind = line[fst_column+1:snd_column].strip()
         default_val = line[snd_column+1:].strip()
     else:
-        raise SyntaxError('syntax error in function declarationn')
-    return FuncDeclArg(name, kind, default_val)
+        raise SyntaxError(err_msg)
+    return obj(name, kind, default_val)
+
+
+class StructField(Representable, DoubleColumnDecl):
+    def __init__(self, name: str, kind: str, default_val: str):
+        self.name = name
+        self.kind = kind
+        self.default_val = default_val
+
+    def repr(self, indent = 0):
+        return SPACES * indent + f'{self.name} : {self.kind or None} : {self.default_val or None}'
+
+
+class Struct(Representable):
+    def __init__(self, name: str, fields: list[StructField]):
+        self.name = name
+        self.fields = fields
+
+    def repr(self, indent = 0):
+        res = SPACES * (indent + 0) + self.name
+        if self.fields:
+            res += '\n'
+            res += '\n'.join(map(lambda x: x.repr(indent+1), self.fields))
+        return res
+
+
+def is_struct(line: str) -> bool:
+    return line.strip() == 'struct'
+
+
+def get_struct_name(code: list[str], line_num: int, base_indent: int) -> Union[str, int]:
+    line_num += 1
+    if base_indent >= define_line_indent(code[line_num]):
+        raise SyntaxError('there is indentation or no struct name declaration problem')
+    return code[line_num].strip(), line_num
+
+
+def get_struct_field_by_line(line: str) -> StructField:
+    return get_double_column_decl_by_line(StructField, line, 'syntax error in field declaration')
+
+
+def get_struct_fields(code: list[str], line_num: int, base_indent: int) -> Union[list[StructField], int]:
+    fields: list[StructField] = []
+    line_num += 1
+    while line_num < len(code) and base_indent < define_line_indent(code[line_num]):
+        if is_single_comment(code[line_num]):
+            line_num += 1
+            continue
+        field = get_struct_field_by_line(code[line_num])
+        fields.append(field)
+        line_num += 1
+    return fields, line_num
+
+
+def parse_struct(code: list[str], line_num: int) -> Union[Struct, int]:
+    name, line_num = get_struct_name(code, line_num, define_line_indent(code[line_num]))
+    fields, line_num = get_struct_fields(code, line_num, define_line_indent(code[line_num]))
+    return Struct(name, fields), line_num
+
+
+class FuncDeclArg(DoubleColumnDecl):
+    def __init__(self, name: str, kind: str, default_val: str):
+        self._name = name
+        self._kind = kind
+        self._default_val = default_val
+
+    def __str__(self):
+        return f'FuncDeclArg[name={self._name}, kind={self._kind or None}, default_val={self._default_val or None}]'
+
+    def __repr__(self):
+        return self.__str__()
+
+
+def get_func_decl_arg_by_line(line: str):
+    return get_double_column_decl_by_line(FuncDeclArg, line, 'syntax error in arguemnt function declarationn')
 
 
 class FuncCall(Representable):
@@ -66,14 +143,12 @@ class FuncCall(Representable):
         return self.__str__()
 
     def repr(self, indent: int = 0):
-        res = ''
-        spaces = ' ' * 4
-        res += spaces * (indent + 0) + self._name + '\n'
+        res = SPACES * (indent + 0) + self._name + '\n'
         for arg in self._args:
             if isinstance(arg, FuncCall):
                 res += arg.repr(indent+1)
             else:
-                res += spaces * (indent+1) + arg
+                res += SPACES * (indent+1) + arg
             res += '\n'
         if len(res):
             return res[:-1]
@@ -224,11 +299,12 @@ def ignore_multiline_comment(code: list[str], line_num: int) -> Union[None, int]
 
 class AST:
     def __init__(self, code: list[str]):
+        self._structs: list[Struct] = []
         self._func_calls: list[FuncCall] = []
         self._func_decls: list[FuncDecl] = []
-        self.build(code)
+        self._build(code)
 
-    def build(self, code: list[str]):
+    def _build(self, code: list[str]):
         line_num = 0
         while line_num < len(code):
             line = code[line_num]
@@ -236,6 +312,9 @@ class AST:
                 pass
             elif is_multiline_comment(line):
                 _, line_num = ignore_multiline_comment(code, line_num)
+            elif is_struct(line):
+                struct, line_num = parse_struct(code, line_num)
+                self._structs.append(struct)
             elif is_func_call(line):
                 func_call, line_num = parse_func_call(code, line_num)
                 self._func_calls.append(func_call)
@@ -245,10 +324,13 @@ class AST:
             line_num += 1
 
     def __repr__(self):
-        names = 'func decls', 'func calls'
-        funcs = self.repr_func_decls, self.repr_func_calls
+        names = 'stucts', 'func decls', 'func calls'
+        funcs = self.repr_structs, self.repr_func_decls, self.repr_func_calls
         return '\n'.join(f'\n{notify("*", 30, name.capitalize())}\n{func()}'
                          for name, func in zip(names, funcs))
+    
+    def repr_structs(self):
+        return '\n\n'.join(map(lambda x: x.repr(), self._structs))
 
     def repr_func_decls(self):
         return '\n'.join(map(lambda x: x.repr(), self._func_decls))
