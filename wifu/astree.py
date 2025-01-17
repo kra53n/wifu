@@ -3,21 +3,22 @@ from typing import Any, Union
 from utils import notify
 
 
-class FuncArg:
+class SyntaxError(Exception):
     pass
 
 
-class FuncBody:
+class IndentationProblem(Exception):
     pass
 
 
 class FuncDeclArg:
-    def __init__(self, name: str, default_val: str):
+    def __init__(self, name: str, kind: str, default_val: str):
         self._name = name
+        self._kind = kind
         self._default_val = default_val
 
     def __str__(self):
-        return f'FuncDeclArg[name={self._name}, default_val={self._default_val or None}]'
+        return f'FuncDeclArg[name={self._name}, kind={self._kind or None}, default_val={self._default_val or None}]'
 
     def __repr__(self):
         return self.__str__()
@@ -25,14 +26,20 @@ class FuncDeclArg:
 
 def get_func_decl_arg_by_line(line: str):
     name = ''
+    kind = ''
     default_val = ''
-    if ':' in line:
-        delemiter_idx = line.index(':')
-        name = line[:delemiter_idx].strip()
-        default_val = default_val=line[delemiter_idx+1:].strip()
-    else:
+    columns = line.count(':')
+    if columns == 0:
         name = line.strip()
-    return FuncDeclArg(name, default_val)
+    elif columns == 2:
+        fst_column = line.index(':')
+        snd_column = line.index(':', fst_column+1)
+        name = line[:fst_column].strip()
+        kind = line[fst_column+1:snd_column].strip()
+        default_val = line[snd_column+1:].strip()
+    else:
+        raise SyntaxError('syntax error in function declarationn')
+    return FuncDeclArg(name, kind, default_val)
 
 
 class FuncCall:
@@ -86,10 +93,6 @@ class FuncDecl:
         return self.__str__()
 
 
-class IndentationProblem(Exception):
-    pass
-
-
 def is_func_call(line: str) -> bool:
     if len(line) == 0 or line.startswith(' ') or line.startswith('\t'):
         return False
@@ -129,7 +132,7 @@ def get_func_decl_name(code: list[str], line_num: int, base_indent: int) -> Unio
     return func_name, line_num
 
 
-def get_func_decl_args(code: list[str], line_num: int, base_indent: int) -> Union[list[FuncArg], int]:
+def get_func_decl_args(code: list[str], line_num: int, base_indent: int) -> Union[list[FuncDeclArg], int]:
     line_num += 1
     line_num = skip_empty_lines(code, line_num)
     args: FuncDeclArg = []
@@ -144,7 +147,7 @@ def get_func_decl_args(code: list[str], line_num: int, base_indent: int) -> Unio
     return args, line_num
 
 
-def get_func_decl_body(code: list[str], line_num: int, base_indent: int) -> Union[FuncBody, int]:
+def get_func_decl_body(code: list[str], line_num: int, base_indent: int) -> Union[list[FuncCall], int]:
     line_num = skip_empty_lines(code, line_num)
     body: list[FuncCall] = []
     while (line_num < len(code) and
