@@ -1,6 +1,7 @@
 from typing import Any, Union
 
 from utils import notify
+from repr import Representable
 
 
 class SyntaxError(Exception):
@@ -42,7 +43,7 @@ def get_func_decl_arg_by_line(line: str):
     return FuncDeclArg(name, kind, default_val)
 
 
-class FuncCall:
+class FuncCall(Representable):
     def __init__(self, name: str):
         self._name = name
         self._args = []
@@ -64,13 +65,13 @@ class FuncCall:
     def __repr__(self):
         return self.__str__()
 
-    def repr_as_tree(self, indent: int = 0):
+    def repr(self, indent: int = 0):
         res = ''
         spaces = ' ' * 4
         res += spaces * (indent + 0) + self._name + '\n'
         for arg in self._args:
             if isinstance(arg, FuncCall):
-                res += arg.repr_as_tree(indent+1)
+                res += arg.repr(indent+1)
             else:
                 res += spaces * (indent+1) + arg
             res += '\n'
@@ -79,7 +80,7 @@ class FuncCall:
         return res
 
 
-class FuncDecl:
+class FuncDecl(Representable):
     def __init__(self, name: str, start: int, args: list[FuncDeclArg], body: list[FuncCall]):
         self._name = name
         self._start = start
@@ -90,6 +91,9 @@ class FuncDecl:
         return f'Func[{self._name}, start {self._start}, args {len(self._args)}]'
 
     def __repr__(self):
+        return self.__str__()
+
+    def repr(self, indent = 0):
         return self.__str__()
 
 
@@ -240,19 +244,14 @@ class AST:
                 self._func_decls.append(func_decl)
             line_num += 1
 
-    def print(self):
-        names = 'funcs', 'func calls'
-        funcs = self.print_funcs, self.print_func_calls
-        for name, func in zip(names, funcs):
-            print()
-            notify('*', 30, name.capitalize())
-            func()
+    def __repr__(self):
+        names = 'func decls', 'func calls'
+        funcs = self.repr_func_decls, self.repr_func_calls
+        return '\n'.join(f'\n{notify("*", 30, name.capitalize())}\n{func()}'
+                         for name, func in zip(names, funcs))
 
-    def print_funcs(self):
-        for func_decl in self._func_decls:
-            print(func_decl)
+    def repr_func_decls(self):
+        return '\n'.join(map(lambda x: x.repr(), self._func_decls))
 
-    def print_func_calls(self):
-        for fcall in self._func_calls:
-            print(fcall.repr_as_tree())
-            print()
+    def repr_func_calls(self):
+        return '\n'.join(map(lambda x: x.repr(), self._func_calls))
