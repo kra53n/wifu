@@ -1,5 +1,6 @@
 from atree import AT
+from astree import AST
 
 
-def interpret(at: AT):
-    pass
+def interpret(ast: AST):
+    at = AT(ast)

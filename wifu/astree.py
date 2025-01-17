@@ -120,35 +120,44 @@ def get_func_decl_arg_by_line(line: str):
     return get_double_column_decl_by_line(FuncDeclArg, line, 'syntax error in arguemnt function declarationn')
 
 
+class FuncCallArg(Representable):
+    def __init__(self, data: str):
+        self.data = data
+        self.kind = None
+
+    def repr(self, indent = 0):
+        return self.data
+
+
 class FuncCall(Representable):
     def __init__(self, name: str):
         self._name = name
-        self._args = []
-        self._kwargs = []
+        self.args = []
+        # self._kwargs = [] # TODO(kra53n): implement later
 
     def add(self, arg):
-        self._args.append(arg)
+        self.args.append(arg)
 
     def pop(self) -> Any:
-        if not len(self._args):
+        if not len(self.args):
             return None
-        elem = self._args[-1]
-        self._args = self._args[:-1]
+        elem = self.args[-1]
+        self.args = self.args[:-1]
         return elem
 
     def __str__(self):
-        return f'FuncCall[{self._name}, args {self._args}]'
+        return f'FuncCall[{self._name}, args {self.args}]'
 
     def __repr__(self):
         return self.__str__()
 
     def repr(self, indent: int = 0):
         res = SPACES * (indent + 0) + self._name + '\n'
-        for arg in self._args:
+        for arg in self.args:
             if isinstance(arg, FuncCall):
                 res += arg.repr(indent+1)
             else:
-                res += SPACES * (indent+1) + arg
+                res += SPACES * (indent+1) + arg.repr()
             res += '\n'
         if len(res):
             return res[:-1]
@@ -255,7 +264,7 @@ def parse_func_call(code: list[str], line_num: int) -> Union[FuncCall, int]:
                 break
 
         if line_indent == indent:
-            func_call.add(code[line_num].strip())
+            func_call.add(FuncCallArg(code[line_num].strip()))
         elif line_indent > indent:
             func_call.pop()
             inner_func_call, line_num = parse_func_call(code, line_num-1)
@@ -299,9 +308,9 @@ def ignore_multiline_comment(code: list[str], line_num: int) -> Union[None, int]
 
 class AST:
     def __init__(self, code: list[str]):
-        self._structs: list[Struct] = []
-        self._func_calls: list[FuncCall] = []
-        self._func_decls: list[FuncDecl] = []
+        self.structs: list[Struct] = []
+        self.func_decls: list[FuncDecl] = []
+        self.func_calls: list[FuncCall] = []
         self._build(code)
 
     def _build(self, code: list[str]):
@@ -314,13 +323,13 @@ class AST:
                 _, line_num = ignore_multiline_comment(code, line_num)
             elif is_struct(line):
                 struct, line_num = parse_struct(code, line_num)
-                self._structs.append(struct)
-            elif is_func_call(line):
-                func_call, line_num = parse_func_call(code, line_num)
-                self._func_calls.append(func_call)
+                self.structs.append(struct)
             elif is_func_decl(line):
                 func_decl, line_num = parse_func_decl(code, line_num)
-                self._func_decls.append(func_decl)
+                self.func_decls.append(func_decl)
+            elif is_func_call(line):
+                func_call, line_num = parse_func_call(code, line_num)
+                self.func_calls.append(func_call)
             line_num += 1
 
     def __repr__(self):
@@ -330,10 +339,10 @@ class AST:
                          for name, func in zip(names, funcs))
     
     def repr_structs(self):
-        return '\n\n'.join(map(lambda x: x.repr(), self._structs))
+        return '\n\n'.join(map(lambda x: x.repr(), self.structs))
 
     def repr_func_decls(self):
-        return '\n'.join(map(lambda x: x.repr(), self._func_decls))
+        return '\n'.join(map(lambda x: x.repr(), self.func_decls))
 
     def repr_func_calls(self):
-        return '\n'.join(map(lambda x: x.repr(), self._func_calls))
+        return '\n'.join(map(lambda x: x.repr(), self.func_calls))
