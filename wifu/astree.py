@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any, Type
 
 from utils import notify
 from repr import Representable
@@ -7,8 +7,8 @@ from repr import Representable
 SPACES = ' ' * 4
 
 
-class SyntaxError(Exception):
-    pass
+# class SyntaxError(Exception):
+#     pass
 
 
 class IndentationProblem(Exception):
@@ -20,7 +20,7 @@ class DoubleColumnDecl:
         pass
 
 
-def get_double_column_decl_by_line(obj: DoubleColumnDecl, line: str, err_msg: str):
+def get_double_column_decl_by_line(obj: Type[DoubleColumnDecl], line: str, err_msg: str):
     '''
     return obj with initialized arguments:
         - name: str
@@ -29,7 +29,6 @@ def get_double_column_decl_by_line(obj: DoubleColumnDecl, line: str, err_msg: st
 
     the obj returns by parsing string like `obj : type : val` or some variation
     '''
-    name = ''
     kind = ''
     default_val = ''
     columns = line.count(':')
@@ -73,7 +72,7 @@ def is_struct(line: str) -> bool:
     return line.strip() == 'struct'
 
 
-def get_struct_name(code: list[str], line_num: int, base_indent: int) -> Union[str, int]:
+def get_struct_name(code: list[str], line_num: int, base_indent: int) -> (str, int):
     line_num += 1
     if base_indent >= define_line_indent(code[line_num]):
         raise SyntaxError('there is indentation or no struct name declaration problem')
@@ -84,7 +83,7 @@ def get_struct_field_by_line(line: str) -> StructField:
     return get_double_column_decl_by_line(StructField, line, 'syntax error in field declaration')
 
 
-def get_struct_fields(code: list[str], line_num: int, base_indent: int) -> Union[list[StructField], int]:
+def get_struct_fields(code: list[str], line_num: int, base_indent: int) -> (list[StructField], int):
     fields: list[StructField] = []
     line_num += 1
     while line_num < len(code) and base_indent < define_line_indent(code[line_num]):
@@ -97,7 +96,7 @@ def get_struct_fields(code: list[str], line_num: int, base_indent: int) -> Union
     return fields, line_num
 
 
-def parse_struct(code: list[str], line_num: int) -> Union[Struct, int]:
+def parse_struct(code: list[str], line_num: int) -> (Struct, int):
     name, line_num = get_struct_name(code, line_num, define_line_indent(code[line_num]))
     fields, line_num = get_struct_fields(code, line_num, define_line_indent(code[line_num]))
     return Struct(name, fields), line_num
@@ -211,7 +210,7 @@ def skip_empty_lines(code: list[str], line_num: int) -> int:
     return line_num
 
 
-def get_func_decl_name(code: list[str], line_num: int, base_indent: int) -> Union[str, int]:
+def get_func_decl_name(code: list[str], line_num: int, base_indent: int) -> (str, int):
     line_num += 1
     line_num = skip_empty_lines(code, line_num)
     func_name = code[line_num].strip()
@@ -220,7 +219,7 @@ def get_func_decl_name(code: list[str], line_num: int, base_indent: int) -> Unio
     return func_name, line_num
 
 
-def get_func_decl_args(code: list[str], line_num: int, base_indent: int) -> Union[list[FuncDeclArg], int]:
+def get_func_decl_args(code: list[str], line_num: int, base_indent: int) -> (list[FuncDeclArg], int):
     line_num += 1
     line_num = skip_empty_lines(code, line_num)
     args: FuncDeclArg = []
@@ -235,7 +234,7 @@ def get_func_decl_args(code: list[str], line_num: int, base_indent: int) -> Unio
     return args, line_num
 
 
-def get_func_decl_body(code: list[str], line_num: int, base_indent: int) -> Union[list[FuncCall], int]:
+def get_func_decl_body(code: list[str], line_num: int, base_indent: int) -> (list[FuncCall], int):
     line_num = skip_empty_lines(code, line_num)
     body: list[FuncCall] = []
     while (line_num < len(code) and
@@ -247,7 +246,7 @@ def get_func_decl_body(code: list[str], line_num: int, base_indent: int) -> Unio
     return body, line_num
 
 
-def parse_func_call(code: list[str], line_num: int) -> Union[FuncCall, int]:
+def parse_func_call(code: list[str], line_num: int) -> (FuncCall, int):
     func_name = code[line_num].strip()
     func_call = FuncCall(func_name)
 
@@ -275,7 +274,7 @@ def parse_func_call(code: list[str], line_num: int) -> Union[FuncCall, int]:
     return func_call, line_num
 
 
-def parse_func_decl(code: list[str], line_num: int) -> Union[FuncDecl, int]:
+def parse_func_decl(code: list[str], line_num: int) -> (FuncDecl, int):
     start = line_num
     indent = define_line_indent(code[line_num])
     func_name, line_num = get_func_decl_name(code, line_num, indent)
@@ -296,7 +295,7 @@ def is_multiline_comment(line: str) -> bool:
               line[:3].count('"') == 3)))
 
 
-def ignore_multiline_comment(code: list[str], line_num: int) -> Union[None, int]:
+def ignore_multiline_comment(code: list[str], line_num: int) -> (None, int):
     comment_signature = code[line_num].strip()[:3]
     while line_num + 1 < len(code):
         line_num += 1

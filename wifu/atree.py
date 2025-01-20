@@ -36,15 +36,19 @@ def get_atom(data: str) -> Atom:
         return get_as_num(data)
 
 
-def get_as_char_atom(data: str):
+def get_as_num(data) -> Atom:
     pass
 
 
-def get_as_str_atom(data: str):
+def get_as_char_atom(data: str) -> Atom:
     pass
 
 
-def get_as_num_atom(data: str):
+def get_as_str_atom(data: str) -> Atom:
+    pass
+
+
+def get_as_num_atom(data: str) -> Atom:
     pass
 
 
@@ -67,4 +71,4 @@ class AT:
         return subject
     
     def _process_func_calls_of_ast(self, ast):
-        return [self._process_subject(fc) for fc in ast.func_calls]
+        return [self.process_subject(fc) for fc in ast.func_calls]

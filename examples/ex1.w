@@ -17,6 +17,6 @@ func 2
 # func 1
 
 func
- say hello    
+ say hello
  print
   'Hello wifu language!'
