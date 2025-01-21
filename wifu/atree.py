@@ -33,17 +33,29 @@ class Fraction(Atom):
         self.denominator = int(denominator)
 
 
-def get_atom(data: str) -> Atom:
+def looks_like_str(data: str) -> bool:
+    return (len(data) > 2 and data[0] == '"' or
+            len(data) > 3 and data[0] == "'")
+
+
+def looks_like_char(data: str) -> bool:
+    return len(data) == 3 and data[0] in ('"', "'")
+
+
+def looks_like_num(data: str) -> bool:
     fst = data[0]
     snd = data[1] if len(data) > 1 else None
-    if fst in ("'", '"') and len(data) >= 2:
-        if len(data) == 3 and fst == "'":
-            return get_as_char_atom(data)
-        return get_as_str_atom(data)
-    if (fst.isdigit() or
-        ((fst == '.' or fst == '-') and
-         snd.isdigit())):
-        return get_as_num_atom(data)
+    return (fst.isdigit() or
+            ((fst == '.' or fst == '-') and
+             snd.isdigit()))
+
+
+def get_atom(data: str) -> Atom:
+    for looks_like_something, approptiate_atom in ((looks_like_str, get_as_str_atom),
+                                                   (looks_like_num, get_as_num_atom),
+                                                   (looks_like_char_atom, get_as_char_atom)):
+        if looks_like_something(data):
+            return approptiate_atom(atom)
 
 
 def get_as_char_atom(data: str) -> Atom:
