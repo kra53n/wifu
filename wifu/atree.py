@@ -28,9 +28,9 @@ class Float(Atom):
 
 
 class Fraction(Atom):
-    def __init__(self, left: str, right: str):
-        self.left = int(left)
-        self.right = int(right)
+    def __init__(self, numerator: str, denominator: str):
+        self.numerator = int(numerator)
+        self.denominator = int(denominator)
 
 
 def get_atom(data: str) -> Atom:
@@ -59,15 +59,6 @@ def get_as_str_atom(data: str) -> Atom:
 
 
 def get_as_num_atom(data: str) -> Atom:
-    # - float
-    #   - signed
-    #   - unsigned
-    # - int
-    #   - signed
-    #   - unsigned
-    # - fraction
-    #   - signed
-    #   - unsigned
     is_signed = False
     is_mantissa = False
     is_fraction = False
