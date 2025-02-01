@@ -1,8 +1,8 @@
 func
     my func
-        arg 1 : str : 123
-        arg 2 : int
-        arg 3
-        arg 4
+        arg 1
+        arg 2 : str : 123
+        arg 3 : int
+        arg 4 :: 123
     print
         'Hello world'

@@ -4,8 +4,8 @@ from interpret import interpret
 
 
 if __name__ == '__main__':
-    # with open('../examples/ex2.w') as f: # emacs and pycharm
-    with open('examples/ex3.w') as f: # vscode
+    with open('../examples/ex3.w') as f: # emacs and pycharm
+    # with open('examples/ex3.w') as f: # vscode
         code = f.read()
     ast = AST(code.split('\n'))
     at = AT(ast)

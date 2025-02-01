@@ -109,6 +109,8 @@ class AT:
             subject.kind = str_to_atom_ref(subject.kind) if subject.kind else Generic
             if subject.default_val:
                 subject.default_val = get_atom(subject.default_val)
+                if subject.kind == Generic:
+                    subject.kind = subject.default_val.__class__
         return subject
     
     def _process_func_calls_of_ast(self, ast: AST):
