@@ -1,36 +1,15 @@
-from astree import AST, FuncCall, FuncCallArg
+from atoms import Atom, Str, Char, Int, Float, Fraction, Generic
+from astree import AST, FuncCall, FuncCallArg, FuncDecl, FuncDeclArg
 
 
-class Atom:
-    def __init__(self, data: str):
-        self.data = data
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}[{self.data}]'
-
-
-class Str(Atom):
-    pass
-
-
-class Char(Atom):
-    pass
-
-
-class Int(Atom):
-    def __init__(self, data: str):
-        self.data = int(data)
-
-
-class Float(Atom):
-    def __init__(self, left: str, right: str):
-        self.data = float(left + '.' + right)
-
-
-class Fraction(Atom):
-    def __init__(self, numerator: str, denominator: str):
-        self.numerator = int(numerator)
-        self.denominator = int(denominator)
+def str_to_atom_ref(kind: str):
+    return {
+        'str': Str,
+        'chr': Char,
+        'int': Int,
+        'float': Float,
+        'fract': Fraction,
+    }[kind]
 
 
 def looks_like_str(data: str) -> bool:
@@ -53,9 +32,9 @@ def looks_like_num(data: str) -> bool:
 def get_atom(data: str) -> Atom:
     for looks_like_something, approptiate_atom in ((looks_like_str, get_as_str_atom),
                                                    (looks_like_num, get_as_num_atom),
-                                                   (looks_like_char_atom, get_as_char_atom)):
+                                                   (looks_like_char, get_as_char_atom)):
         if looks_like_something(data):
-            return approptiate_atom(atom)
+            return approptiate_atom(data)
 
 
 def get_as_char_atom(data: str) -> Atom:
@@ -109,8 +88,9 @@ def get_as_num_atom(data: str) -> Atom:
 class AT:
     def __init__(self, ast: AST):
         # self.structs
-        # self.func_decls
-        self.func_calls = self._process_func_calls_of_ast(ast)
+        self.func_decls: list[FuncDecl] = self._process_func_decls_of_ast(ast)
+        self.func_calls: list[FuncCall] = self._process_func_calls_of_ast(ast)
+        print('nani')
 
     # NOTE(kra53n): actually i dont think that `process` is a good word for
     # this and similur actions
@@ -122,7 +102,17 @@ class AT:
                 self.process_subject(func_call_arg)
         elif isinstance(subject, FuncCallArg):
             subject.kind = get_atom(subject.data)
+        elif isinstance(subject, FuncDecl):
+            for func_decl_arg in subject.args:
+                self.process_subject(func_decl_arg)
+        elif isinstance(subject, FuncDeclArg):
+            subject.kind = str_to_atom_ref(subject.kind) if subject.kind else Generic
+            if subject.default_val:
+                subject.default_val = get_atom(subject.default_val)
         return subject
     
-    def _process_func_calls_of_ast(self, ast):
+    def _process_func_calls_of_ast(self, ast: AST):
         return [self.process_subject(fc) for fc in ast.func_calls]
+
+    def _process_func_decls_of_ast(self, ast: AST):
+        return [self.process_subject(fc) for fc in ast.func_decls]

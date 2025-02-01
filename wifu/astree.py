@@ -1,5 +1,6 @@
 from typing import Any, Type
 
+from atoms import Atom
 from utils import notify
 from repr import Representable
 
@@ -34,6 +35,10 @@ def get_double_column_decl_by_line(obj: Type[DoubleColumnDecl], line: str, err_m
     columns = line.count(':')
     if columns == 0:
         name = line.strip()
+    elif columns == 1:
+        column = line.index(':')
+        name = line[:column].strip()
+        kind = line[column+1:].strip()
     elif columns == 2:
         fst_column = line.index(':')
         snd_column = line.index(':', fst_column+1)
@@ -104,12 +109,18 @@ def parse_struct(code: list[str], line_num: int) -> (Struct, int):
 
 class FuncDeclArg(DoubleColumnDecl):
     def __init__(self, name: str, kind: str, default_val: str):
-        self._name = name
-        self._kind = kind
-        self._default_val = default_val
+        '''
+        - kind accepts str but then when `AT` is callig it must be transformed
+        to reference on some atom
+        - default_val accepts str but then when `AT` is calling it must be
+        transformed to one of the Atom type.
+        '''
+        self._name: str = name
+        self.kind: str | Atom = kind
+        self.default_val: str | Atom = default_val
 
     def __str__(self):
-        return f'FuncDeclArg[name={self._name}, kind={self._kind or None}, default_val={self._default_val or None}]'
+        return f'FuncDeclArg[name={self._name}, kind={self._kind or None}, default_val={self.default_val or None}]'
 
     def __repr__(self):
         return self.__str__()
@@ -122,7 +133,7 @@ def get_func_decl_arg_by_line(line: str):
 class FuncCallArg(Representable):
     def __init__(self, data: str):
         self.data = data
-        self.kind = None
+        self.kind: Atom = None
 
     def repr(self, indent = 0):
         return self.data
@@ -165,13 +176,13 @@ class FuncCall(Representable):
 
 class FuncDecl(Representable):
     def __init__(self, name: str, start: int, args: list[FuncDeclArg], body: list[FuncCall]):
-        self._name = name
-        self._start = start
-        self._args = args
-        self._body = body
+        self.name: str = name
+        self.start: int = start
+        self.args: list[FuncDeclArg] = args
+        self.body: list[FuncCall] = body
 
     def __str__(self):
-        return f'Func[{self._name}, start {self._start}, args {len(self._args)}]'
+        return f'Func[{self.name}, start {self.start}, args {len(self.args)}]'
 
     def __repr__(self):
         return self.__str__()
