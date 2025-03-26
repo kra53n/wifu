@@ -4,11 +4,17 @@ from .interpret import interpret
 
 
 if __name__ == '__main__':
-    with open('examples/ex3.w') as f: # emacs and pycharm
-    # with open('examples/ex3.w') as f: # vscode
+    with open('examples/ex3.w') as f:
         code = f.read()
     ast = AST(code.split('\n'))
     at = AT(ast)
+    from pprint import pprint
+    print(at)
+    # pprint(dir(at))
+    print(at.func_calls)
+    print(at.func_decls)
+
+
     # print(ast)
     # interpret(ast)
 
