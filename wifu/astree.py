@@ -1,8 +1,8 @@
 from typing import Any, Type
 
-from atoms import Atom
-from utils import notify
-from repr import Representable
+from .atoms import Atom
+from .utils import notify
+from .repr import Representable
 
 
 SPACES = ' ' * 4

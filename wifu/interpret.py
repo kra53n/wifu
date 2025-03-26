@@ -1,5 +1,5 @@
-from atree import AT
-from astree import AST
+from .atree import AT
+from .astree import AST
 
 
 def interpret(ast: AST):

@@ -1,5 +1,5 @@
-from atoms import Atom, Str, Char, Int, Float, Fraction, Generic
-from astree import AST, FuncCall, FuncCallArg, FuncDecl, FuncDeclArg
+from .atoms import Atom, Str, Char, Int, Float, Fraction, Generic
+from .astree import AST, FuncCall, FuncCallArg, FuncDecl, FuncDeclArg
 
 
 def str_to_atom_ref(kind: str):
