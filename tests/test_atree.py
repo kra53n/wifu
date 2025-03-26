@@ -4,7 +4,9 @@ with `assert` Python statement.
 '''
 
 
-from atree import *
+from wifu import (
+    atree,
+)
 
 
 class TestGetAsNumAtom:
