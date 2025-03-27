@@ -90,7 +90,6 @@ class AT:
         # self.structs
         self.func_decls: list[FuncDecl] = self._process_func_decls_of_ast(ast)
         self.func_calls: list[FuncCall] = self._process_func_calls_of_ast(ast)
-        print('nani')
 
     # NOTE(kra53n): actually i dont think that `process` is a good word for
     # this and similur actions
@@ -105,6 +104,8 @@ class AT:
         elif isinstance(subject, FuncDecl):
             for func_decl_arg in subject.args:
                 self.process_subject(func_decl_arg)
+            for inner_subject in subject.body:
+                self.process_subject(inner_subject)
         elif isinstance(subject, FuncDeclArg):
             subject.kind = str_to_atom_ref(subject.kind) if subject.kind else Generic
             if subject.default_val:
