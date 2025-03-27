@@ -3,6 +3,7 @@ from typing import (
     Generator,
 )
 
+
 import pytest
 
 
@@ -20,7 +21,6 @@ func
         'hello world'
         3.14
         'pez'
-
 ''')
 
 
