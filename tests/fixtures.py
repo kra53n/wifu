@@ -25,7 +25,7 @@ func
 
 
 @pytest.fixture
-def get_arithmetic_expression() -> Callable[None, Generator[tuple[str, str], None, None]]:
+def get_arithmetic_expressions() -> Callable[None, Generator[tuple[str, str], None, None]]:
     def wrapper():
         expr = (
 '''
@@ -33,7 +33,29 @@ def get_arithmetic_expression() -> Callable[None, Generator[tuple[str, str], Non
     12
     13
 ''')
-        for op in '+-*/%':
+        for op in (*'+-*/%^', '++', '**'):
+            yield expr % op
+        return
+    return wrapper
+
+
+@pytest.fixture
+def get_arithmetic_expressions_only_with_double_sign() -> Callable[None, Generator[tuple[str, str], None, None]]:
+    def wrapper():
+        expr = (
+'''
+%s
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+''')
+        for op in ('++', '**'):
             yield expr % op
         return
     return wrapper

@@ -30,15 +30,14 @@ def call(func_call: FuncCall, decls: list[FuncDecl]):
     decl = find_decl(func_call, decls)
 
     if isinstance(decl, builtin.Func):
-        decl.exec(func_call)
-        return
+        return decl.exec(func_call)
 
     # i guess we should make variables from args that then we can use in a function
 
     # im not sure what expression means, maybe i should use statement word
     for expr in decl.body:
         if isinstance(expr, FuncCall):
-            call(expr, decls)
+            return call(expr, decls)
 
 
 def interpret(at: AT):
