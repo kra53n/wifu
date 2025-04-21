@@ -36,3 +36,7 @@ class Fraction(Atom):
 
 class Generic(Atom):
     pass
+
+
+def equals(atom1: Atom, atom2: Atom):
+    return atom1.__class__.__name__ == atom2.__class__.__name__
