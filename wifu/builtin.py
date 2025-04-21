@@ -77,7 +77,8 @@ def _plusplus(func_call: astree.FuncCall):
     res = 0
     for v in map(lambda kind: kind.data, kinds):
         res += v
-    return res
+    print("JHKAKJLKLJKJLKJLKLJKLJ")
+    return kind.__class__(res)
 
 
 def _asteriskasterisk(func_call: astree.FuncCall):
@@ -90,6 +91,7 @@ def _asteriskasterisk(func_call: astree.FuncCall):
     for v in map(lambda kind: kind.data, kinds):
         res *= v
     return res
+
 
 funcs: dict[str, Func] = {
     'print': Func(_print),

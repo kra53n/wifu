@@ -1,23 +1,20 @@
+import sys
+import pathlib
+
 from .astree import AST
 from .atree import AT
 from .interpret import interpret
 
 
-if __name__ == '__main__':
-    with open('examples/ex3.w') as f:
-        code = f.read()
+def main():
+    argv = sys.argv[1:]
+    assert len(argv) == 1, 'currently only 1 script file is allowed'
+    code = pathlib.Path(argv[0]).read_text()
     ast = AST(code.split('\n'))
     at = AT(ast)
-    from pprint import pprint
-    print(at)
-    # pprint(dir(at))
-    print(at.func_calls)
-    print(at.func_decls)
+    interpret(at)
+    
 
 
-    # print(ast)
-    # interpret(ast)
-
-    # for func_decl in ast._func_decls:
-    #     for arg in func_decl._args:
-    #         print(arg)
+if __name__ == '__main__':
+    main()

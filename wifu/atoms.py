@@ -2,6 +2,9 @@
 The base types of the language
 '''
 
+import typing
+
+
 class Atom:
     def __init__(self, data: str):
         self.data = data
@@ -18,17 +21,22 @@ class Char(Atom):
     pass
 
 
-class Int(Atom):
+class Callculable(Atom):
+    def __add__(self, atom: typing.Self):
+        return self.__class__(self.data + atom.data)
+
+
+class Int(Callculable):
     def __init__(self, data: str):
         self.data = int(data)
 
 
-class Float(Atom):
+class Float(Callculable):
     def __init__(self, left: str, right: str):
         self.data = float(left + '.' + right)
 
 
-class Fraction(Atom):
+class Fraction(Callculable):
     def __init__(self, numerator: str, denominator: str):
         self.numerator = int(numerator)
         self.denominator = int(denominator)
