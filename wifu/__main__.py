@@ -8,7 +8,9 @@ from .interpret import interpret
 
 def main():
     argv = sys.argv[1:]
-    assert len(argv) == 1, 'currently only 1 script file is allowed'
+    if len(argv) != 1:
+        print('Currently only 1 script file is allowed')
+        return
     code = pathlib.Path(argv[0]).read_text()
     ast = AST(code.split('\n'))
     at = AT(ast)

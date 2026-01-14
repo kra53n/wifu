@@ -8,6 +8,13 @@ wifu -- toy functional programming language.
 python -m pytest
 ```
 
+## Usage
+
+```shell
+python -m wifu
+```
+
 ## Documentation
 
 Documentation written in [pdoc](https://pdoc.dev/docs/pdoc.html) style.
+

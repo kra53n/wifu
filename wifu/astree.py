@@ -138,6 +138,9 @@ class FuncCallArg(Representable):
     def repr(self, indent = 0):
         return self.data
 
+    # def eval(self):
+    #     print('mother fucker')
+
 
 class FuncCall(Representable):
     def __init__(self, name: str):

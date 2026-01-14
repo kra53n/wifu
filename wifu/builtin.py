@@ -17,7 +17,10 @@ class Func:
 def _print(func_call: astree.FuncCall):
     args: Iterable[astree.FuncCallArg] = func_call.args
     for arg in args:
-        print(arg.kind.data)
+        if isinstance(arg, astree.FuncCallArg):
+            print(arg.kind.data)
+        elif isinstance(arg, astree.FuncCall):
+            print(arg.exec())
 
 
 def _plus(func_call: astree.FuncCall):
