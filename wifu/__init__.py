@@ -1,6 +1,6 @@
 from . import (
     astree,
-    atoms,
+    atom,
     atree,
     interpret,
     repr,

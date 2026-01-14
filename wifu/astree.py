@@ -1,6 +1,6 @@
 from typing import Any, Type
 
-from .atoms import Atom
+from .atom import Atom
 from .utils import notify
 from .repr import Representable
 

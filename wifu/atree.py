@@ -1,4 +1,4 @@
-from .atoms import Atom, Str, Char, Int, Float, Fraction, Generic
+from .atom import Atom, Str, Char, Int, Float, Fraction, Generic
 from .astree import AST, FuncCall, FuncCallArg, FuncDecl, FuncDeclArg
 
 

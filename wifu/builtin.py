@@ -3,7 +3,7 @@ from typing import (
 )
 
 from .import astree 
-from .import atoms
+from .import atom
 
 
 class Func:
