@@ -9,8 +9,17 @@ class Atom:
     def __init__(self, data: str):
         self.data = data
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self.__class__.__name__}[{self.data}]'
+
+    def format_data(self) -> str:
+        '''
+        Return data that can be printed using print wifu function.
+        
+        The most atoms could be presented only with on variable (self.data).
+        But there is some atoms that needs to have more variables like Fraction.
+        '''
+        return self.data
 
 
 class Str(Atom):
@@ -40,6 +49,12 @@ class Fraction(Callculable):
     def __init__(self, numerator: str, denominator: str):
         self.numerator = int(numerator)
         self.denominator = int(denominator)
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}[{self.numerator}/{self.denominator}]'
+
+    def format_data(self) -> str:
+        return f'{self.numerator}/{self.denominator}'
 
 
 class Generic(Atom):
