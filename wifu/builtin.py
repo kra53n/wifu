@@ -21,6 +21,9 @@ def _print(func_call: astree.FuncCall):
         # Here we should to print expression. So maybe we can avoid this, but we faced with fact
         # that we can't just to get attribute from atom and print it. It is not working
         # when we whant to print what other function evaluates.
+
+        # NOTE(kra53n, 20260126) it would be easier to make if we will print an evaluated expressions
+        # like 1 + 2 * 2 and etc.
         print(arg)
         print(arg.kind.format_data())
 
