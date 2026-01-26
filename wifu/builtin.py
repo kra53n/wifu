@@ -77,7 +77,6 @@ def _plusplus(func_call: astree.FuncCall):
     res = 0
     for v in map(lambda kind: kind.data, kinds):
         res += v
-    print("JHKAKJLKLJKJLKJLKLJKLJ")
     return kind.__class__(res)
 
 
