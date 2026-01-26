@@ -17,6 +17,11 @@ class Func:
 def _print(func_call: astree.FuncCall):
     args: Iterable[astree.FuncCallArg] = func_call.args
     for arg in args:
+        # NOTE(kra53n, 20260126) we should to operate statements and expressions.
+        # Here we should to print expression. So maybe we can avoid this, but we faced with fact
+        # that we can't just to get attribute from atom and print it. It is not working
+        # when we whant to print what other function evaluates.
+        print(arg)
         print(arg.kind.format_data())
 
 
