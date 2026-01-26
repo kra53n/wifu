@@ -1,6 +1,6 @@
 from typing import Any, Type
 
-from .atoms import Atom
+from .atom import Atom
 from .utils import notify
 from .repr import Representable
 
@@ -138,11 +138,14 @@ class FuncCallArg(Representable):
     def repr(self, indent = 0):
         return self.data
 
+    # def eval(self):
+    #     print('mother fucker')
+
 
 class FuncCall(Representable):
     def __init__(self, name: str):
         self._name = name
-        self.args = []
+        self.args: FuncCallArg = []
         # self._kwargs = [] # TODO(kra53n): implement later
 
     def add(self, arg):

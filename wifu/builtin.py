@@ -3,7 +3,7 @@ from typing import (
 )
 
 from .import astree 
-from .import atoms
+from .import atom
 
 
 class Func:
@@ -17,14 +17,14 @@ class Func:
 def _print(func_call: astree.FuncCall):
     args: Iterable[astree.FuncCallArg] = func_call.args
     for arg in args:
-        print(arg.kind.data)
+        print(arg.kind.format_data())
 
 
 def _plus(func_call: astree.FuncCall):
     args: Iterable[astree.FuncCallArg] = func_call.args
     assert len(args) == 2
     fst, snd = args
-    assert atoms.equals(fst.kind, snd.kind)
+    assert atom.equals(fst.kind, snd.kind)
     return fst.kind.data + snd.kind.data
 
 
@@ -32,7 +32,7 @@ def _minus(func_call: astree.FuncCall):
     args: Iterable[astree.FuncCallArg] = func_call.args
     assert len(args) == 2
     fst, snd = args
-    assert atoms.equals(fst.kind, snd.kind)
+    assert atom.equals(fst.kind, snd.kind)
     return fst.kind.data - snd.kind.data
 
 
@@ -40,7 +40,7 @@ def _asterisk(func_call: astree.FuncCall):
     args: Iterable[astree.FuncCallArg] = func_call.args
     assert len(args) == 2
     fst, snd = args
-    assert atoms.equals(fst.kind, snd.kind)
+    assert atom.equals(fst.kind, snd.kind)
     return fst.kind.data * snd.kind.data
 
 
@@ -48,7 +48,7 @@ def _divide(func_call: astree.FuncCall):
     args: Iterable[astree.FuncCallArg] = func_call.args
     assert len(args) == 2
     fst, snd = args
-    assert atoms.equals(fst.kind, snd.kind)
+    assert atom.equals(fst.kind, snd.kind)
     return fst.kind.data / snd.kind.data
 
 
@@ -56,7 +56,7 @@ def _percent(func_call: astree.FuncCall):
     args: Iterable[astree.FuncCallArg] = func_call.args
     assert len(args) == 2
     fst, snd = args
-    assert atoms.equals(fst.kind, snd.kind)
+    assert atom.equals(fst.kind, snd.kind)
     return fst.kind.data % snd.kind.data
 
 
@@ -64,7 +64,7 @@ def _circumflex(func_call: astree.FuncCall):
     args: Iterable[astree.FuncCallArg] = func_call.args
     assert len(args) == 2
     fst, snd = args
-    assert atoms.equals(fst.kind, snd.kind)
+    assert atom.equals(fst.kind, snd.kind)
     return fst.kind.data ** snd.kind.data
 
 
@@ -73,11 +73,12 @@ def _plusplus(func_call: astree.FuncCall):
     assert len(args) > 1
     kind = args[0].kind
     kinds = tuple(map(lambda arg: arg.kind, args))
-    assert all(map(lambda k: atoms.equals(kind, k), kinds))
+    assert all(map(lambda k: atom.equals(kind, k), kinds))
     res = 0
     for v in map(lambda kind: kind.data, kinds):
         res += v
-    return res
+    print("JHKAKJLKLJKJLKJLKLJKLJ")
+    return kind.__class__(res)
 
 
 def _asteriskasterisk(func_call: astree.FuncCall):
@@ -85,11 +86,12 @@ def _asteriskasterisk(func_call: astree.FuncCall):
     assert len(args) > 1
     kind = args[0].kind
     kinds = tuple(map(lambda arg: arg.kind, args))
-    assert all(map(lambda k: atoms.equals(kind, k), kinds))
+    assert all(map(lambda k: atom.equals(kind, k), kinds))
     res = 1
     for v in map(lambda kind: kind.data, kinds):
         res *= v
     return res
+
 
 funcs: dict[str, Func] = {
     'print': Func(_print),
