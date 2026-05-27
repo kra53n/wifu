@@ -26,6 +26,7 @@ class Str(Atom):
     pass
 
 
+
 class Char(Atom):
     pass
 
@@ -38,6 +39,9 @@ class Callculable(Atom):
 class Int(Callculable):
     def __init__(self, data: str):
         self.data = int(data)
+
+    def format_data(self):
+        return f"{self.data}"
 
 
 class Float(Callculable):

@@ -3,7 +3,7 @@ from typing import (
 )
 
 from .atree import AT
-from .astree import FuncCall, FuncDecl
+from .astree import FuncCall, FuncDecl, FuncCallArg
 from . import builtin
 
 
@@ -38,6 +38,16 @@ def call(func_call: FuncCall, decls: list[FuncDecl]):
     for expr in decl.body:
         if isinstance(expr, FuncCall):
             return call(expr, decls)
+
+
+def evaluate(item) -> str:
+    # item - ast item type should be
+    if isinstance(item, FuncCallArg):
+        return item.kind.format_data()
+    elif isinstance(item, FuncCall):
+        at = []
+        return call(item, at).format_data()
+    return ""
 
 
 def interpret(at: AT):

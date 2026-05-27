@@ -4,6 +4,7 @@ from typing import (
 
 from .import astree 
 from .import atom
+from .import interpret
 
 
 class Func:
@@ -24,8 +25,14 @@ def _print(func_call: astree.FuncCall):
 
         # NOTE(kra53n, 20260126) it would be easier to make if we will print an evaluated expressions
         # like 1 + 2 * 2 and etc.
-        print(arg)
-        print(arg.kind.format_data())
+
+        # print(arg)
+        # if isinstance(arg, astree.FuncCall):
+        #     print('azzozing')
+        #     continue
+        # print(arg.kind.format_data())
+
+        print(interpret.evaluate(arg))
 
 
 def _plus(func_call: astree.FuncCall):
