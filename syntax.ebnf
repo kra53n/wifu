@@ -1,0 +1,35 @@
+/*
+    EBNF Notation
+
+  Syntax      = { Production } .
+  Production  = production_name "=" [ Expression ] "." .
+  Expression  = Term { "|" Term } .
+  Term        = Factor { Factor } .
+  Factor      = production_name | token [ "…" token ] | Group | Option | Repetition .
+  Group       = "(" Expression ")" .
+  Option      = "[" Expression "]" .
+  Repetition  = "{" Expression "}" .
+
+  |   alternation
+  ()  grouping
+  []  option (0 or 1 times)
+  {}  repetition (0 to n times)
+*/
+
+lang = NOT DEFINED NOW
+
+newline        = /* the Unicode code point U+000A */ .
+unicode_char   = /* an arbitrary Unicode code point except newline */ .
+unicode_letter = /* a Unicode code point categorized as "Letter" */ .
+unicode_digit  = /* a Unicode code point categorized as "Number, decimal digit" */ .
+
+identifier = letter { letter | unicode_digit } .
+
+indent = 
+dident = 
+
+func = "func" expr .
+
+/* https://go.dev/ref/spec#Expressions */
+expr_block = indent expr { expr } dident  .
+expr = empty | unary_op identifier | 

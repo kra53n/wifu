@@ -10,7 +10,7 @@ print one more time
 func
   print one more time
   print
-    'one'
+    '\none'
     "more"
     'time'
     ++
